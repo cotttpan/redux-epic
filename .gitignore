@@ -61,6 +61,3 @@ typings/
 .env
 
 ### Project ###
-test/compiled
-dist
-es
