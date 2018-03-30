@@ -19,8 +19,8 @@
     tslint-react "^3.4.0"
 
 "@cotto/utils.ts@^0.2.10":
-  version "0.2.10"
-  resolved "https://registry.yarnpkg.com/@cotto/utils.ts/-/utils.ts-0.2.10.tgz#60bd4309aa9bd4f208a6e0fcf77dbe3f8c5734c8"
+  version "0.2.11"
+  resolved "https://registry.yarnpkg.com/@cotto/utils.ts/-/utils.ts-0.2.11.tgz#63359828d0dfc21c74ef82a1a68af493b5f386c6"
 
 "@cotto/utils.ts@^0.2.8":
   version "0.2.8"
@@ -673,12 +673,12 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
     delayed-stream "~1.0.0"
 
 "command-bus@https://github.com/cotttpan/command-bus":
-  version "0.0.5"
-  resolved "https://github.com/cotttpan/command-bus#afa086323efcf096d2d06a77f46336092cb4cf0b"
+  version "0.0.6"
+  resolved "https://github.com/cotttpan/command-bus#a6539cbd13e879b086c5ccdd4ee0a0ec9577097d"
   dependencies:
     "@cotto/utils.ts" "^0.2.10"
     eventemitter2 "^5.0.1"
-    rxjs "^5.5.6"
+    rxjs "^5.5.8"
 
 commander@^2.12.1:
   version "2.13.0"
@@ -3289,7 +3289,7 @@ rxjs@^5.0.0-beta.11, rxjs@^5.5.2:
   dependencies:
     symbol-observable "1.0.1"
 
-rxjs@^5.5.6, rxjs@^5.5.8:
+rxjs@^5.5.8:
   version "5.5.8"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.8.tgz#b2b0809a57614ad6254c03d7446dea0d83ca3791"
   dependencies:
