@@ -1,4 +1,4 @@
-import { MiddlewareAPI, Dispatch, Middleware } from 'redux'
+import { MiddlewareAPI, Dispatch, Middleware, AnyAction } from 'redux'
 import { Observable } from 'rxjs/Observable'
 import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 import { Subject } from 'rxjs/Subject'
@@ -27,20 +27,23 @@ export const createEpicMiddleware = <T>(epic: Epic<T>, opts = defaultEpicOptions
     return nextEpic
   }
 
-  const middleware: Middleware = <S = T>(api: MiddlewareAPI<S>) => {
+  const replaceStateSubject = (api: MiddlewareAPI) => () => {
+    state$ && state$.complete()
+    state$ = new BehaviorSubject(api.getState())
+  }
+
+  const bootEpic = (ep: Epic<T>) => ep(dispatcher, state$)
+
+  const middleware: Middleware = (api: MiddlewareAPI<Dispatch<AnyAction>, T>) => {
     const command$ = epic$.pipe(
-      tap(() => {
-        state$ && state$.complete()
-        state$ = new BehaviorSubject(api.getState() as any)
-        return state$
-      }),
-      switchMap((ep: Epic<T>) => ep(dispatcher, state$)),
+      tap(replaceStateSubject(api)),
+      switchMap(bootEpic),
       filter(isCommand),
     )
 
-    return (next: Dispatch<S>) => {
+    return (next: Dispatch) => {
       /* boot epic */
-      command$.subscribe(api.dispatch)
+      command$.subscribe(command => api.dispatch(command))
       /* initial epic */
       epic$.next(epic)
 
