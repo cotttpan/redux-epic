@@ -13,15 +13,16 @@ export const createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
         epic$.next(nextEpic);
         return nextEpic;
     };
+    const replaceStateSubject = (api) => () => {
+        state$ && state$.complete();
+        state$ = new BehaviorSubject(api.getState());
+    };
+    const bootEpic = (ep) => ep(dispatcher, state$);
     const middleware = (api) => {
-        const command$ = epic$.pipe(tap(() => {
-            state$ && state$.complete();
-            state$ = new BehaviorSubject(api.getState());
-            return state$;
-        }), switchMap((ep) => ep(dispatcher, state$)), filter(isCommand));
+        const command$ = epic$.pipe(tap(replaceStateSubject(api)), switchMap(bootEpic), filter(isCommand));
         return (next) => {
             /* boot epic */
-            command$.subscribe(api.dispatch);
+            command$.subscribe(command => api.dispatch(command));
             /* initial epic */
             epic$.next(epic);
             return (action) => {
