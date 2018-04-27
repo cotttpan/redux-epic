@@ -1,5 +1,4 @@
-import { Observable } from 'rxjs/Observable'
-import { merge } from 'rxjs/observable/merge'
+import { Observable, merge } from 'rxjs'
 import { map, mapTo, tap, withLatestFrom } from 'rxjs/operators'
 import { create, select, EventSource } from 'command-bus'
 import { createStore, MiddlewareAPI, applyMiddleware } from 'redux'

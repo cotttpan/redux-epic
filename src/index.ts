@@ -1,7 +1,5 @@
+import { Observable, BehaviorSubject, Subject } from 'rxjs'
 import { MiddlewareAPI, Dispatch, Middleware, AnyAction } from 'redux'
-import { Observable } from 'rxjs/Observable'
-import { BehaviorSubject } from 'rxjs/BehaviorSubject'
-import { Subject } from 'rxjs/Subject'
 import { filter, switchMap, tap } from 'rxjs/operators'
 import { EventSource, Dispatcher, DispatcherOptions, isCommand } from 'command-bus'
 
