@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const BehaviorSubject_1 = require("rxjs/BehaviorSubject");
-const Subject_1 = require("rxjs/Subject");
+const rxjs_1 = require("rxjs");
 const operators_1 = require("rxjs/operators");
 const command_bus_1 = require("command-bus");
 const defaultEpicOptions = {
@@ -9,7 +8,7 @@ const defaultEpicOptions = {
 };
 exports.createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
     const dispatcher = new command_bus_1.Dispatcher(opts);
-    const epic$ = new Subject_1.Subject();
+    const epic$ = new rxjs_1.Subject();
     let state$;
     const replaceEpic = (nextEpic) => {
         epic$.next(nextEpic);
@@ -17,7 +16,7 @@ exports.createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
     };
     const replaceStateSubject = (api) => () => {
         state$ && state$.complete();
-        state$ = new BehaviorSubject_1.BehaviorSubject(api.getState());
+        state$ = new rxjs_1.BehaviorSubject(api.getState());
     };
     const bootEpic = (ep) => ep(dispatcher, state$);
     const middleware = (api) => {

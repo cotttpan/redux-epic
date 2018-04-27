@@ -1,5 +1,4 @@
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, switchMap, tap } from 'rxjs/operators';
 import { Dispatcher, isCommand } from 'command-bus';
 const defaultEpicOptions = {

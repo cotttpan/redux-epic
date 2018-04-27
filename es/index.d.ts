@@ -1,5 +1,5 @@
+import { Observable } from 'rxjs';
 import { Dispatch, Middleware, AnyAction } from 'redux';
-import { Observable } from 'rxjs/Observable';
 import { EventSource, DispatcherOptions } from 'command-bus';
 export interface Epic<S> {
     (ev: EventSource, state$: Observable<S>): Observable<any>;
