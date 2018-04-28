@@ -673,11 +673,10 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
     delayed-stream "~1.0.0"
 
 "command-bus@https://github.com/cotttpan/command-bus":
-  version "0.0.8"
-  resolved "https://github.com/cotttpan/command-bus#f3e967231ea04d027ca46e9e182ac58984edfd7a"
+  version "0.0.9"
+  resolved "https://github.com/cotttpan/command-bus#8f14a253a1a8b0f1dffcff88a7755aabda8e6137"
   dependencies:
     "@cotto/utils.ts" "^0.2.11"
-    eventemitter2 "^5.0.1"
     rxjs "^6.0.0"
 
 commander@^2.12.1:
@@ -995,10 +994,6 @@ event-stream@~3.3.0:
     split "0.3"
     stream-combiner "~0.0.4"
     through "~2.3.1"
-
-eventemitter2@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/eventemitter2/-/eventemitter2-5.0.1.tgz#6197a095d5fb6b57e8942f6fd7eaad63a09c9452"
 
 exec-sh@^0.2.0:
   version "0.2.1"
