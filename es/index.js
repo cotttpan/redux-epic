@@ -1,11 +1,8 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, switchMap, tap } from 'rxjs/operators';
-import { Dispatcher, isCommand } from 'command-bus';
-const defaultEpicOptions = {
-    wildcard: true,
-};
-export const createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
-    const dispatcher = new Dispatcher(opts);
+import { createCommandBus, isCommand } from 'command-bus';
+export const createEpicMiddleware = (epic) => {
+    const bus = createCommandBus();
     const epic$ = new Subject();
     let state$;
     const replaceEpic = (nextEpic) => {
@@ -16,7 +13,7 @@ export const createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
         state$ && state$.complete();
         state$ = new BehaviorSubject(api.getState());
     };
-    const bootEpic = (ep) => ep(dispatcher, state$);
+    const bootEpic = (ep) => ep(bus, state$);
     const middleware = (api) => {
         const command$ = epic$.pipe(tap(replaceStateSubject(api)), switchMap(bootEpic), filter(isCommand));
         return (next) => {
@@ -27,7 +24,7 @@ export const createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
             return (action) => {
                 const result = next(action);
                 state$.next(api.getState());
-                isCommand(result) && dispatcher.dispatch(result);
+                isCommand(result) && bus.dispatch(result);
                 return result;
             };
         };

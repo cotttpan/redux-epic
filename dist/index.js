@@ -3,11 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const rxjs_1 = require("rxjs");
 const operators_1 = require("rxjs/operators");
 const command_bus_1 = require("command-bus");
-const defaultEpicOptions = {
-    wildcard: true,
-};
-exports.createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
-    const dispatcher = new command_bus_1.Dispatcher(opts);
+exports.createEpicMiddleware = (epic) => {
+    const bus = command_bus_1.createCommandBus();
     const epic$ = new rxjs_1.Subject();
     let state$;
     const replaceEpic = (nextEpic) => {
@@ -18,7 +15,7 @@ exports.createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
         state$ && state$.complete();
         state$ = new rxjs_1.BehaviorSubject(api.getState());
     };
-    const bootEpic = (ep) => ep(dispatcher, state$);
+    const bootEpic = (ep) => ep(bus, state$);
     const middleware = (api) => {
         const command$ = epic$.pipe(operators_1.tap(replaceStateSubject(api)), operators_1.switchMap(bootEpic), operators_1.filter(command_bus_1.isCommand));
         return (next) => {
@@ -29,7 +26,7 @@ exports.createEpicMiddleware = (epic, opts = defaultEpicOptions) => {
             return (action) => {
                 const result = next(action);
                 state$.next(api.getState());
-                command_bus_1.isCommand(result) && dispatcher.dispatch(result);
+                command_bus_1.isCommand(result) && bus.dispatch(result);
                 return result;
             };
         };
