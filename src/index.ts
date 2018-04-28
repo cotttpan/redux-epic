@@ -1,22 +1,14 @@
 import { Observable, BehaviorSubject, Subject } from 'rxjs'
 import { MiddlewareAPI, Dispatch, Middleware, AnyAction } from 'redux'
 import { filter, switchMap, tap } from 'rxjs/operators'
-import { EventSource, Dispatcher, DispatcherOptions, isCommand } from 'command-bus'
+import { EventSource, createCommandBus, isCommand } from 'command-bus'
 
 export interface Epic<S> {
   (ev: EventSource, state$: Observable<S>): Observable<any>
 }
 
-export interface EpicMiddlewareOptions extends DispatcherOptions {
-
-}
-
-const defaultEpicOptions: EpicMiddlewareOptions = {
-  wildcard: true,
-}
-
-export const createEpicMiddleware = <T>(epic: Epic<T>, opts = defaultEpicOptions) => {
-  const dispatcher = new Dispatcher(opts)
+export const createEpicMiddleware = <T>(epic: Epic<T>) => {
+  const bus = createCommandBus()
   const epic$ = new Subject<Epic<T>>()
   let state$: BehaviorSubject<T>
 
@@ -30,7 +22,7 @@ export const createEpicMiddleware = <T>(epic: Epic<T>, opts = defaultEpicOptions
     state$ = new BehaviorSubject(api.getState())
   }
 
-  const bootEpic = (ep: Epic<T>) => ep(dispatcher, state$)
+  const bootEpic = (ep: Epic<T>) => ep(bus, state$)
 
   const middleware: Middleware = (api: MiddlewareAPI<Dispatch<AnyAction>, T>) => {
     const command$ = epic$.pipe(
@@ -48,7 +40,7 @@ export const createEpicMiddleware = <T>(epic: Epic<T>, opts = defaultEpicOptions
       return (action: any) => {
         const result = next(action)
         state$.next(api.getState() as any)
-        isCommand(result) && dispatcher.dispatch(result)
+        isCommand(result) && bus.dispatch(result)
         return result
       }
     }
