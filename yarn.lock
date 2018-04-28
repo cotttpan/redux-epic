@@ -673,8 +673,8 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
     delayed-stream "~1.0.0"
 
 "command-bus@https://github.com/cotttpan/command-bus":
-  version "0.0.7"
-  resolved "https://github.com/cotttpan/command-bus#c7523c932232a83e33c2308a40fa779ab66df78d"
+  version "0.0.8"
+  resolved "https://github.com/cotttpan/command-bus#f3e967231ea04d027ca46e9e182ac58984edfd7a"
   dependencies:
     "@cotto/utils.ts" "^0.2.11"
     eventemitter2 "^5.0.1"
