@@ -673,11 +673,11 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
     delayed-stream "~1.0.0"
 
 "command-bus@https://github.com/cotttpan/command-bus":
-  version "0.0.9"
-  resolved "https://github.com/cotttpan/command-bus#8f14a253a1a8b0f1dffcff88a7755aabda8e6137"
+  version "0.0.10"
+  resolved "https://github.com/cotttpan/command-bus#7b7c78a36cd23f57818c426b187fc61fff34e773"
   dependencies:
     "@cotto/utils.ts" "^0.2.11"
-    rxjs "^6.0.0"
+    rxjs "^6.1.0"
 
 commander@^2.12.1:
   version "2.13.0"
@@ -3277,12 +3277,6 @@ rxjs@^5.0.0-beta.11, rxjs@^5.5.2:
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.6.tgz#e31fb96d6fd2ff1fd84bcea8ae9c02d007179c02"
   dependencies:
     symbol-observable "1.0.1"
-
-rxjs@^6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.0.0.tgz#d647e029b5854617f994c82fe57a4c6747b352da"
-  dependencies:
-    tslib "^1.9.0"
 
 rxjs@^6.1.0:
   version "6.1.0"
