@@ -15,9 +15,8 @@ exports.createEpicMiddleware = (epic) => {
         state$ && state$.complete();
         state$ = new rxjs_1.BehaviorSubject(api.getState());
     };
-    const bootEpic = (ep) => ep(bus, state$);
     const middleware = (api) => {
-        const command$ = epic$.pipe(operators_1.tap(replaceStateSubject(api)), operators_1.switchMap(bootEpic), operators_1.filter(command_bus_1.isCommand));
+        const command$ = epic$.pipe(operators_1.tap(replaceStateSubject(api)), operators_1.switchMap((ep) => ep(bus, { state$, getState: api.getState })), operators_1.filter(command_bus_1.isCommand));
         return (next) => {
             /* boot epic */
             command$.subscribe(command => api.dispatch(command));

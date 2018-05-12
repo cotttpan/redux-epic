@@ -1,7 +1,7 @@
 {
   "name": "redux-epic",
   "description": "redux-epic",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "author": "cotto",
   "files": [
     "es",
