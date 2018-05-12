@@ -2,7 +2,7 @@ import { Observable, merge } from 'rxjs'
 import { map, mapTo, tap, withLatestFrom } from 'rxjs/operators'
 import { create, select, EventSource } from 'command-bus'
 import { createStore, MiddlewareAPI, applyMiddleware } from 'redux'
-import { createEpicMiddleware } from './index'
+import { createEpicMiddleware, Store } from './index'
 import { values } from '@cotto/utils.ts'
 
 interface Log {
@@ -40,15 +40,16 @@ const reducer = (state = init(), action: any) => {
   }
 }
 
-const stateLogEpic = (container: Set<Log>) => (ev: EventSource, state$: Observable<S>) => {
+const stateLogEpic = (container: Set<Log>) => (ev: EventSource, store: Store) => {
   return select(ev, values(ACTIONS)).pipe(
-    withLatestFrom(state$, (action, state) => ({ action, state })),
+    withLatestFrom(store.state$, (action, state) => ({ action, state })),
+    tap(src => expect(store.getState()).toEqual(src.state)),
     tap(container.add.bind(container)),
     mapTo(null),
   )
 }
 
-const reIncrementEpic = (amount: number) => (ev: EventSource) => {
+const reIncrementEpic = (amount: number) => (ev: EventSource, store: Store) => {
   return select(ev, ACTIONS.INCREMENT).pipe(
     mapTo(ACTIONS.RE_INCREMENT(amount)),
   )

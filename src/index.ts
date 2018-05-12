@@ -3,8 +3,13 @@ import { MiddlewareAPI, Dispatch, Middleware, AnyAction } from 'redux'
 import { filter, switchMap, tap } from 'rxjs/operators'
 import { EventSource, createCommandBus, isCommand } from 'command-bus'
 
+export interface Store<S = any> {
+  getState: () => S,
+  state$: Observable<S>
+}
+
 export interface Epic<S> {
-  (ev: EventSource, state$: Observable<S>): Observable<any>
+  (ev: EventSource, store: Store<S>): Observable<any>
 }
 
 export const createEpicMiddleware = <T>(epic: Epic<T>) => {
@@ -22,12 +27,12 @@ export const createEpicMiddleware = <T>(epic: Epic<T>) => {
     state$ = new BehaviorSubject(api.getState())
   }
 
-  const bootEpic = (ep: Epic<T>) => ep(bus, state$)
 
   const middleware: Middleware = (api: MiddlewareAPI<Dispatch<AnyAction>, T>) => {
+
     const command$ = epic$.pipe(
       tap(replaceStateSubject(api)),
-      switchMap(bootEpic),
+      switchMap((ep: Epic<T>) => ep(bus, { state$, getState: api.getState })),
       filter(isCommand),
     )
 
