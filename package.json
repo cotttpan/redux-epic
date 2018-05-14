@@ -28,7 +28,7 @@
   "devDependencies": {
     "@cotto/tslint-config": "^0.1.4",
     "@types/jest": "^22.2.3",
-    "@types/node": "^6.0.110",
+    "@types/node": "^10.0.8",
     "@types/sinon": "^4.3.3",
     "jest": "^22.4.3",
     "np": "^2.20.1",
