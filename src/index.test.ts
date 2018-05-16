@@ -1,9 +1,11 @@
 import { Observable, merge } from 'rxjs'
 import { map, mapTo, tap, withLatestFrom } from 'rxjs/operators'
-import { create, select, EventSource } from 'command-bus'
+import { factory, select, EventSource } from 'command-bus'
 import { createStore, MiddlewareAPI, applyMiddleware } from 'redux'
 import { createEpicMiddleware, Store } from './index'
 import { values } from '@cotto/utils.ts'
+
+const create = factory('')
 
 interface Log {
   state: any
