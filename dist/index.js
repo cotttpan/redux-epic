@@ -3,8 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const rxjs_1 = require("rxjs");
 const operators_1 = require("rxjs/operators");
 const command_bus_1 = require("command-bus");
-exports.createEpicMiddleware = (epic) => {
-    const bus = command_bus_1.createCommandBus();
+const defualtOptions = () => ({
+    busInstance: command_bus_1.createCommandBus(),
+});
+exports.createEpicMiddleware = (epic, options = defualtOptions()) => {
+    const bus = options.busInstance || command_bus_1.createCommandBus();
     const epic$ = new rxjs_1.Subject();
     let state$;
     const replaceEpic = (nextEpic) => {

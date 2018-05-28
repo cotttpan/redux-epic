@@ -1,8 +1,11 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, switchMap, tap } from 'rxjs/operators';
 import { createCommandBus, isCommand } from 'command-bus';
-export const createEpicMiddleware = (epic) => {
-    const bus = createCommandBus();
+const defualtOptions = () => ({
+    busInstance: createCommandBus(),
+});
+export const createEpicMiddleware = (epic, options = defualtOptions()) => {
+    const bus = options.busInstance || createCommandBus();
     const epic$ = new Subject();
     let state$;
     const replaceEpic = (nextEpic) => {
