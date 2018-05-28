@@ -2,7 +2,7 @@
   "name": "redux-epic",
   "description": "redux-epic",
   "version": "0.1.4",
-  "author": "cotto",
+  "author": "nullabletypo",
   "files": [
     "es",
     "dist",
@@ -16,14 +16,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cotttpan/redux-epic.git"
+    "url": "https://github.com/nullabletypo/redux-epic.git"
   },
   "bugs": {
-    "url": "https://github.com/cotttpan/redux-epic/issues"
+    "url": "https://github.com/nullabletypo/redux-epic/issues"
   },
-  "homepage": "https://github.com/cotttpan/redux-epic",
+  "homepage": "https://github.com/nullabletypo/redux-epic",
   "dependencies": {
-    "command-bus": "https://github.com/cotttpan/command-bus"
+    "command-bus": "https://github.com/nullabletypo/command-bus"
   },
   "devDependencies": {
     "@cotto/tslint-config": "^0.1.4",

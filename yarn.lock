@@ -725,9 +725,9 @@ combined-stream@1.0.6, combined-stream@~1.0.5:
   dependencies:
     delayed-stream "~1.0.0"
 
-"command-bus@https://github.com/cotttpan/command-bus":
+"command-bus@https://github.com/nullabletypo/command-bus":
   version "0.1.5"
-  resolved "https://github.com/cotttpan/command-bus#41ea2652541e4155449f0b5ae018cfa81d62b22f"
+  resolved "https://github.com/nullabletypo/command-bus#41ea2652541e4155449f0b5ae018cfa81d62b22f"
   dependencies:
     "@cotto/utils.ts" "^0.2.12"
     rxjs "^6.2.0"
