@@ -1,7 +1,7 @@
 import { Observable, BehaviorSubject, Subject } from 'rxjs'
 import { MiddlewareAPI, Dispatch, Middleware, AnyAction } from 'redux'
 import { filter, switchMap, tap } from 'rxjs/operators'
-import { EventSource, createCommandBus, isCommand } from 'command-bus'
+import { EventSource, createCommandBus, isCommand, CommandBus } from 'command-bus'
 
 export interface Store<S = any> {
   getState: () => S,
@@ -12,8 +12,16 @@ export interface Epic<S> {
   (ev: EventSource, store: Store<S>): Observable<any>
 }
 
-export const createEpicMiddleware = <T>(epic: Epic<T>) => {
-  const bus = createCommandBus()
+export interface EpicMiddlewareOptions {
+  busInstance?: CommandBus
+}
+
+const defualtOptions = (): EpicMiddlewareOptions => ({
+  busInstance: createCommandBus(),
+})
+
+export const createEpicMiddleware = <T>(epic: Epic<T>, options = defualtOptions()) => {
+  const bus = options.busInstance || createCommandBus()
   const epic$ = new Subject<Epic<T>>()
   let state$: BehaviorSubject<T>
 
