@@ -1,12 +1,12 @@
 import { Observable } from 'rxjs';
 import { Dispatch, Middleware, AnyAction } from 'redux';
-import { EventSource, CommandBus } from 'command-bus';
+import { CommandSource, CommandBus } from 'command-bus';
 export interface Store<S = any> {
     getState: () => S;
     state$: Observable<S>;
 }
 export interface Epic<S> {
-    (ev: EventSource, store: Store<S>): Observable<any>;
+    (ev: CommandSource, store: Store<S>): Observable<any>;
 }
 export interface EpicMiddlewareOptions {
     busInstance?: CommandBus;
