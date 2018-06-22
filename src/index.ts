@@ -1,7 +1,7 @@
 import { Observable, BehaviorSubject, Subject } from 'rxjs'
 import { MiddlewareAPI, Dispatch, Middleware, AnyAction } from 'redux'
 import { filter, switchMap, tap } from 'rxjs/operators'
-import { EventSource, createCommandBus, isCommand, CommandBus } from 'command-bus'
+import { CommandSource, createCommandBus, isCommand, CommandBus } from 'command-bus'
 
 export interface Store<S = any> {
   getState: () => S,
@@ -9,7 +9,7 @@ export interface Store<S = any> {
 }
 
 export interface Epic<S> {
-  (ev: EventSource, store: Store<S>): Observable<any>
+  (ev: CommandSource, store: Store<S>): Observable<any>
 }
 
 export interface EpicMiddlewareOptions {
