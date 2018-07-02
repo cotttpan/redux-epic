@@ -57,45 +57,46 @@ const reIncrementEpic = (amount: number) => (ev: CommandSource, store: Store) =>
   )
 }
 
-describe('epicMiddleware', () => {
-  test('emit next action', () => {
-    const history = new Set()
-    const epicMiddleware = createEpicMiddleware(reIncrementEpic(1))
-    const historyMiddleware = createHistoryMiddleware(history)
-    const store = createStore(reducer, applyMiddleware(epicMiddleware, historyMiddleware))
+test('emit next action', () => {
+  const history = new Set()
+  const epicMiddleware = createEpicMiddleware({ reincremnet: reIncrementEpic(1) })
+  const historyMiddleware = createHistoryMiddleware(history)
+  const store = createStore(reducer, applyMiddleware(epicMiddleware, historyMiddleware))
 
-    store.dispatch(ACTIONS.INCREMENT(1))
-    store.dispatch(ACTIONS.DECREMENT(1))
+  store.dispatch(ACTIONS.INCREMENT(1))
+  store.dispatch(ACTIONS.DECREMENT(1))
 
-    expect(Array.from(history)).toEqual([
-      { action: ACTIONS.INCREMENT(1), state: { count: 1 } },
-      { action: ACTIONS.RE_INCREMENT(1), state: { count: 2 } },
-      { action: ACTIONS.DECREMENT(1), state: { count: 1 } },
-    ])
-  })
-
-  test('state$ in epic', () => {
-    const history = new Set()
-    const epicMiddleware = createEpicMiddleware(stateLogEpic(history))
-    const store = createStore(reducer, applyMiddleware(epicMiddleware))
-
-    store.dispatch(ACTIONS.INCREMENT(1))
-    store.dispatch(ACTIONS.DECREMENT(1))
-
-    expect(Array.from(history)).toEqual([
-      { action: ACTIONS.INCREMENT(1), state: { count: 1 } },
-      { action: ACTIONS.DECREMENT(1), state: { count: 0 } },
-    ])
-  })
+  expect(Array.from(history)).toEqual([
+    { action: ACTIONS.INCREMENT(1), state: { count: 1 } },
+    { action: ACTIONS.RE_INCREMENT(1), state: { count: 2 } },
+    { action: ACTIONS.DECREMENT(1), state: { count: 1 } },
+  ])
 })
 
-test('replaceEpic', () => {
+test('state$ in epic', () => {
+  const history = new Set()
+  const epicMiddleware = createEpicMiddleware({ logEpic: stateLogEpic(history) })
+  const store = createStore(reducer, applyMiddleware(epicMiddleware))
+
+  store.dispatch(ACTIONS.INCREMENT(1))
+  store.dispatch(ACTIONS.DECREMENT(1))
+
+  expect(Array.from(history)).toEqual([
+    { action: ACTIONS.INCREMENT(1), state: { count: 1 } },
+    { action: ACTIONS.DECREMENT(1), state: { count: 0 } },
+  ])
+})
+
+test('replaceEpics', () => {
   const history = new Set()
 
   const firstEpic = reIncrementEpic(1)
   const secondEpic = reIncrementEpic(10)
-  const epicMiddleware = createEpicMiddleware(firstEpic)
+
+  const epicMiddleware = createEpicMiddleware({ reIncrement: firstEpic })
+
   const historyMiddleware = createHistoryMiddleware(history)
+
   const store = createStore(reducer, applyMiddleware(epicMiddleware, historyMiddleware))
 
   store.dispatch(ACTIONS.INCREMENT(1))
@@ -107,9 +108,12 @@ test('replaceEpic', () => {
 
   /* clear history */
   history.clear()
+
   /* replace */
-  epicMiddleware.replaceEpic(secondEpic)
+  epicMiddleware.replaceEpics({ reIncrement: secondEpic })
+
   store.dispatch(ACTIONS.INCREMENT(1))
+
   expect(Array.from(history)).toEqual([
     { action: ACTIONS.INCREMENT(1), state: { count: 3 } },
     { action: ACTIONS.RE_INCREMENT(10), state: { count: 13 } },
