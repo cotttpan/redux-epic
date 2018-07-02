@@ -1,36 +1,60 @@
 import { BehaviorSubject, Subject } from 'rxjs';
-import { filter, switchMap, tap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
+import { mapValues } from '@cotto/utils.ts';
 import { createCommandBus, isCommand } from 'command-bus';
 const defualtOptions = () => ({
     busInstance: createCommandBus(),
+    showCompletedLogs: false,
 });
-export const createEpicMiddleware = (epic, options = defualtOptions()) => {
-    const bus = options.busInstance || createCommandBus();
-    const epic$ = new Subject();
+//
+// ─── REGISTRY ───────────────────────────────────────────────────────────────────
+//
+export function createRegistry() {
+    const registry = new Map();
+    return (subscriptions) => {
+        for (const [k, s] of registry.entries()) {
+            s.unsubscribe();
+            registry.delete(k);
+        }
+        mapValues(subscriptions, (s, key) => registry.set(key, s));
+        return subscriptions;
+    };
+}
+//
+// ─── MIDDLEWARE FACTORY ─────────────────────────────────────────────────────────────────
+//
+export function createEpicMiddleware(initialEpics, opts = defualtOptions()) {
+    const bus = opts.busInstance || createCommandBus();
     let state$;
-    const replaceEpic = (nextEpic) => {
-        epic$.next(nextEpic);
-        return nextEpic;
-    };
-    const replaceStateSubject = (api) => () => {
-        state$ && state$.complete();
+    const epics$ = new Subject();
+    const putSubscriptions = createRegistry();
+    const middleware = (api) => (next) => {
         state$ = new BehaviorSubject(api.getState());
+        epics$.pipe(map(switchNextEpic)).subscribe();
+        epics$.next(initialEpics);
+        return callNext;
+        function bootEpic(epic, key) {
+            return epic(bus, { getState: api.getState, state$ })
+                .pipe(filter(isCommand))
+                .subscribe({
+                next: api.dispatch,
+                error: err => console.error(`[redux-epic]: error at epics.${key}`, err),
+                complete: () => opts.showCompletedLogs && console.info(`[redux-epic]: epics.${key} is completed`),
+            });
+        }
+        function switchNextEpic(epics) {
+            return putSubscriptions(mapValues(epics, bootEpic));
+        }
+        function callNext(action) {
+            const result = next(action);
+            state$.next(api.getState());
+            return isCommand(result) ? bus.dispatch(result) : result;
+        }
     };
-    const middleware = (api) => {
-        const command$ = epic$.pipe(tap(replaceStateSubject(api)), switchMap((ep) => ep(bus, { state$, getState: api.getState })), filter(isCommand));
-        return (next) => {
-            /* boot epic */
-            command$.subscribe(command => api.dispatch(command));
-            /* initial epic */
-            epic$.next(epic);
-            return (action) => {
-                const result = next(action);
-                state$.next(api.getState());
-                isCommand(result) && bus.dispatch(result);
-                return result;
-            };
-        };
+    const replaceEpics = (epics) => {
+        epics$.next(epics);
+        return epics;
     };
-    return Object.assign(middleware, { replaceEpic });
-};
+    return Object.assign(middleware, { replaceEpics });
+}
 //# sourceMappingURL=index.js.map

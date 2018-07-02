@@ -1,5 +1,6 @@
-import { Observable } from 'rxjs';
-import { Dispatch, Middleware, AnyAction } from 'redux';
+import { Observable, Subscription } from 'rxjs';
+import { Dispatch, Middleware } from 'redux';
+import { HashMap } from '@cotto/utils.ts';
 import { CommandSource, CommandBus } from 'command-bus';
 export interface Store<S = any> {
     getState: () => S;
@@ -8,9 +9,12 @@ export interface Store<S = any> {
 export interface Epic<S> {
     (ev: CommandSource, store: Store<S>): Observable<any>;
 }
+export declare type EpicMap<S> = HashMap<Epic<S>>;
 export interface EpicMiddlewareOptions {
     busInstance?: CommandBus;
+    showCompletedLogs?: boolean;
 }
-export declare const createEpicMiddleware: <T>(epic: Epic<T>, options?: EpicMiddlewareOptions) => Middleware<{}, any, Dispatch<AnyAction>> & {
-    replaceEpic: (nextEpic: Epic<T>) => Epic<T>;
+export declare function createRegistry(): (subscriptions: HashMap<Subscription>) => HashMap<Subscription>;
+export declare function createEpicMiddleware<T>(initialEpics: EpicMap<T>, opts?: EpicMiddlewareOptions): Middleware<{}, any, Dispatch<import("../../../../../../Users/masahiro/Dev/lib/redux-epic/node_modules/redux").AnyAction>> & {
+    replaceEpics: (epics: HashMap<Epic<T>>) => HashMap<Epic<T>>;
 };
