@@ -2,7 +2,7 @@ import { Observable, BehaviorSubject, Subject, Subscription } from 'rxjs'
 import { filter, map } from 'rxjs/operators'
 import { MiddlewareAPI, Dispatch, Middleware } from 'redux'
 import { HashMap, mapValues } from '@cotto/utils.ts'
-import { CommandSource, createCommandBus, isCommand, CommandBus } from 'command-bus'
+import { CommandSource, isCommand, CommandBus } from 'command-bus'
 
 export interface Store<S = any> {
   getState: () => S,
@@ -21,7 +21,7 @@ export interface EpicMiddlewareOptions {
 }
 
 const defualtOptions = (): EpicMiddlewareOptions => ({
-  busInstance: createCommandBus(),
+  busInstance: new CommandBus(),
   showCompletedLogs: false,
 })
 
@@ -43,7 +43,7 @@ export function createRegistry() {
 // ─── MIDDLEWARE FACTORY ─────────────────────────────────────────────────────────────────
 //
 export function createEpicMiddleware<T>(initialEpics: EpicMap<T>, opts = defualtOptions()) {
-  const bus = opts.busInstance || createCommandBus()
+  const bus = opts.busInstance || new CommandBus()
   let state$: BehaviorSubject<T>
   const epics$ = new Subject<EpicMap<T>>()
   const putSubscriptions = createRegistry()
