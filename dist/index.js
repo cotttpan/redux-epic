@@ -5,7 +5,7 @@ const operators_1 = require("rxjs/operators");
 const utils_ts_1 = require("@cotto/utils.ts");
 const command_bus_1 = require("command-bus");
 const defualtOptions = () => ({
-    busInstance: command_bus_1.createCommandBus(),
+    busInstance: new command_bus_1.CommandBus(),
     showCompletedLogs: false,
 });
 //
@@ -27,7 +27,7 @@ exports.createRegistry = createRegistry;
 // ─── MIDDLEWARE FACTORY ─────────────────────────────────────────────────────────────────
 //
 function createEpicMiddleware(initialEpics, opts = defualtOptions()) {
-    const bus = opts.busInstance || command_bus_1.createCommandBus();
+    const bus = opts.busInstance || new command_bus_1.CommandBus();
     let state$;
     const epics$ = new rxjs_1.Subject();
     const putSubscriptions = createRegistry();

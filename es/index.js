@@ -1,9 +1,9 @@
 import { BehaviorSubject, Subject } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { mapValues } from '@cotto/utils.ts';
-import { createCommandBus, isCommand } from 'command-bus';
+import { isCommand, CommandBus } from 'command-bus';
 const defualtOptions = () => ({
-    busInstance: createCommandBus(),
+    busInstance: new CommandBus(),
     showCompletedLogs: false,
 });
 //
@@ -24,7 +24,7 @@ export function createRegistry() {
 // ─── MIDDLEWARE FACTORY ─────────────────────────────────────────────────────────────────
 //
 export function createEpicMiddleware(initialEpics, opts = defualtOptions()) {
-    const bus = opts.busInstance || createCommandBus();
+    const bus = opts.busInstance || new CommandBus();
     let state$;
     const epics$ = new Subject();
     const putSubscriptions = createRegistry();
