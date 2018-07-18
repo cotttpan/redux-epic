@@ -1,7 +1,7 @@
 import { Observable, BehaviorSubject, merge, queueScheduler, Subject } from 'rxjs'
 import { filter, switchMap, observeOn, subscribeOn } from 'rxjs/operators'
 import { Middleware } from 'redux'
-import { isCommand, CommandBus, Command } from 'command-bus'
+import { select, isCommand, CommandBus, Command } from 'command-bus'
 
 export interface Store<S = any> {
   getState: () => S,
@@ -65,3 +65,5 @@ export const combineEpic = <T>(...epics: Epic<T>[]) => {
     return merge(...observables)
   }
 }
+
+export { select }

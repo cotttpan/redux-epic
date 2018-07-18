@@ -1,8 +1,8 @@
 import { Observable, BehaviorSubject } from 'rxjs'
-import { map, mapTo, tap, withLatestFrom } from 'rxjs/operators'
-import { create, select, Command } from 'command-bus'
+import { mapTo, tap, withLatestFrom } from 'rxjs/operators'
+import { create, Command } from 'command-bus'
 import { createStore, applyMiddleware } from 'redux'
-import { createEpicMiddleware, Store, Epic, combineEpic } from './index'
+import { createEpicMiddleware, Store, Epic, combineEpic, select } from './index'
 
 interface Counter {
   count: number
