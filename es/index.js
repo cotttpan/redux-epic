@@ -6,18 +6,17 @@ const defualtOptions = () => ({
 });
 export const createEpicMiddleware = (epic$, opts) => api => {
     const { busInstance } = Object.assign({}, defualtOptions(), opts);
-    const action$ = new Subject();
-    const state$ = new BehaviorSubject(api.getState());
-    const store = {
-        getState: api.getState,
-        state$: state$.pipe(observeOn(queueScheduler)),
-    };
-    action$.pipe(observeOn(queueScheduler), subscribeOn(queueScheduler)).subscribe(command => busInstance.dispatch(command));
-    epic$.pipe(switchMap(epic => ensureCommand(epic(busInstance, store))), observeOn(queueScheduler), subscribeOn(queueScheduler)).subscribe(api.dispatch);
+    const actionSource$ = new Subject();
+    const stateSource$ = new BehaviorSubject(api.getState());
+    const action$ = busInstance;
+    const state$ = stateSource$.pipe(observeOn(queueScheduler));
+    const store = { getState: api.getState, state$ };
+    actionSource$.pipe(observeOn(queueScheduler), subscribeOn(queueScheduler)).subscribe(command => action$.dispatch(command));
+    epic$.pipe(switchMap(epic => ensureCommand(epic(action$, store))), observeOn(queueScheduler), subscribeOn(queueScheduler)).subscribe(api.dispatch);
     return next => action => {
         const result = next(action);
-        state$.next(api.getState());
-        action$.next(result);
+        stateSource$.next(api.getState());
+        actionSource$.next(result);
         return result;
     };
 };

@@ -8,18 +8,17 @@ const defualtOptions = () => ({
 });
 exports.createEpicMiddleware = (epic$, opts) => api => {
     const { busInstance } = Object.assign({}, defualtOptions(), opts);
-    const action$ = new rxjs_1.Subject();
-    const state$ = new rxjs_1.BehaviorSubject(api.getState());
-    const store = {
-        getState: api.getState,
-        state$: state$.pipe(operators_1.observeOn(rxjs_1.queueScheduler)),
-    };
-    action$.pipe(operators_1.observeOn(rxjs_1.queueScheduler), operators_1.subscribeOn(rxjs_1.queueScheduler)).subscribe(command => busInstance.dispatch(command));
-    epic$.pipe(operators_1.switchMap(epic => ensureCommand(epic(busInstance, store))), operators_1.observeOn(rxjs_1.queueScheduler), operators_1.subscribeOn(rxjs_1.queueScheduler)).subscribe(api.dispatch);
+    const actionSource$ = new rxjs_1.Subject();
+    const stateSource$ = new rxjs_1.BehaviorSubject(api.getState());
+    const action$ = busInstance;
+    const state$ = stateSource$.pipe(operators_1.observeOn(rxjs_1.queueScheduler));
+    const store = { getState: api.getState, state$ };
+    actionSource$.pipe(operators_1.observeOn(rxjs_1.queueScheduler), operators_1.subscribeOn(rxjs_1.queueScheduler)).subscribe(command => action$.dispatch(command));
+    epic$.pipe(operators_1.switchMap(epic => ensureCommand(epic(action$, store))), operators_1.observeOn(rxjs_1.queueScheduler), operators_1.subscribeOn(rxjs_1.queueScheduler)).subscribe(api.dispatch);
     return next => action => {
         const result = next(action);
-        state$.next(api.getState());
-        action$.next(result);
+        stateSource$.next(api.getState());
+        actionSource$.next(result);
         return result;
     };
 };
