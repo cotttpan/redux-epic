@@ -12,5 +12,8 @@
     "**/*bundle.*/**": true,
     "**/node_modules/**": true
   },
-  "prettier.disableLanguages": ["typescript", "typescriptreact", "javascript"]
+  "prettier.disableLanguages": ["typescript", "typescriptreact", "javascript"],
+  "code-runner.executorMap": {
+    "typescript": "ts-node"
+  }
 }
