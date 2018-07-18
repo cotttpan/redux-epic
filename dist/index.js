@@ -10,15 +10,14 @@ const defualtOptions = () => ({
 exports.createEpicMiddleware = (epic$, opts) => api => {
     const { busInstance } = Object.assign({}, defualtOptions(), opts);
     const actionSource$ = new rxjs_1.Subject();
-    const stateSource$ = new rxjs_1.BehaviorSubject(api.getState());
+    const state$ = new rxjs_1.BehaviorSubject(api.getState());
     const action$ = busInstance;
-    const state$ = stateSource$.pipe(operators_1.observeOn(rxjs_1.queueScheduler));
     const store = { getState: api.getState, state$ };
     actionSource$.pipe(operators_1.observeOn(rxjs_1.queueScheduler), operators_1.subscribeOn(rxjs_1.queueScheduler)).subscribe(command => action$.dispatch(command));
     epic$.pipe(operators_1.switchMap(epic => ensureCommand(epic(action$, store))), operators_1.observeOn(rxjs_1.queueScheduler), operators_1.subscribeOn(rxjs_1.queueScheduler)).subscribe(api.dispatch);
     return next => action => {
         const result = next(action);
-        stateSource$.next(api.getState());
+        state$.next(api.getState());
         actionSource$.next(result);
         return result;
     };
