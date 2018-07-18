@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs';
 import { Middleware } from 'redux';
-import { CommandBus, Command } from 'command-bus';
+import { select, CommandBus, Command } from 'command-bus';
 export interface Store<S = any> {
     getState: () => S;
     state$: Observable<S>;
@@ -16,3 +16,4 @@ export declare type DefaultOpts<T = EpicMiddlewareOptions> = {
 };
 export declare const createEpicMiddleware: <T>(epic$: Observable<Epic<T>>, opts?: EpicMiddlewareOptions | undefined) => Middleware<T, any, import("redux").Dispatch<import("redux").AnyAction>>;
 export declare const combineEpic: <T>(...epics: Epic<T>[]) => (action$: Observable<Command<any, import("@cotto/utils.ts/dist/types").HashMap<any>>>, store: Store<T>) => Observable<any>;
+export { select };

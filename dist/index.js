@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const rxjs_1 = require("rxjs");
 const operators_1 = require("rxjs/operators");
 const command_bus_1 = require("command-bus");
+exports.select = command_bus_1.select;
 const defualtOptions = () => ({
     busInstance: new command_bus_1.CommandBus(),
 });

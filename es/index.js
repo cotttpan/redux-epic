@@ -1,6 +1,6 @@
 import { BehaviorSubject, merge, queueScheduler, Subject } from 'rxjs';
 import { filter, switchMap, observeOn, subscribeOn } from 'rxjs/operators';
-import { isCommand, CommandBus } from 'command-bus';
+import { select, isCommand, CommandBus } from 'command-bus';
 const defualtOptions = () => ({
     busInstance: new CommandBus(),
 });
@@ -30,4 +30,5 @@ export const combineEpic = (...epics) => {
         return merge(...observables);
     };
 };
+export { select };
 //# sourceMappingURL=index.js.map
