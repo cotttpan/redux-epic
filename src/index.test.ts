@@ -1,121 +1,128 @@
-import { Observable, merge } from 'rxjs'
+import { Observable, BehaviorSubject } from 'rxjs'
 import { map, mapTo, tap, withLatestFrom } from 'rxjs/operators'
-import { factory, select, CommandSource } from 'command-bus'
-import { createStore, MiddlewareAPI, applyMiddleware } from 'redux'
-import { createEpicMiddleware, Store } from './index'
-import { values } from '@cotto/utils.ts'
+import { create, select, Command } from 'command-bus'
+import { createStore, applyMiddleware } from 'redux'
+import { createEpicMiddleware, Store, Epic, combineEpic } from './index'
 
-const create = factory('')
+interface Counter {
+  count: number
+}
 
 interface Log {
-  state: any
   action: any
+  state: Counter
 }
 
-const createHistoryMiddleware = (container: Set<Log>) => {
-  return (store: MiddlewareAPI<any>) => (next: any) => (action: any) => {
-    const result = next(action)
-    container.add({ action, state: store.getState() })
-    return result
+interface State extends Counter {
+  history: Log[]
+}
+
+const actions = {
+  increment: create<number>('increment'),
+  decrement: create<number>('decrement'),
+  reIncrement: create<number>('reIncremnet'),
+}
+
+const reducer = (state: State = { count: 0, history: [] }, action: any): State => {
+  if (action.type === actions.increment.type || action.type === actions.reIncrement.type) {
+    const count = state.count + action.payload
+    const log = { state: { count }, action }
+    const history = [...state.history, log]
+    return { ...state, count, history }
   }
-}
-
-const ACTIONS = {
-  INCREMENT: create<number>('INCREMENT'),
-  RE_INCREMENT: create<number>('RE_INCREMENT'),
-  DECREMENT: create<number>('DECREMENT'),
-}
-
-type S = { count: number }
-
-const init = () => ({ count: 0 })
-
-const reducer = (state = init(), action: any) => {
-  switch (action.type) {
-    case ACTIONS.INCREMENT.type:
-    case ACTIONS.RE_INCREMENT.type:
-      return { ...state, count: state.count + action.payload }
-    case ACTIONS.DECREMENT.type:
-      return { ...state, count: state.count - action.payload }
-    default:
-      return state
+  if (action.type === actions.decrement.type) {
+    const count = state.count - action.payload
+    const log = { state: { count }, action }
+    const history = [...state.history, log]
+    return { ...state, count, history }
   }
+  return state
 }
 
-const stateLogEpic = (container: Set<Log>) => (ev: CommandSource, store: Store) => {
-  return select(ev, values(ACTIONS)).pipe(
-    withLatestFrom(store.state$, (action, state) => ({ action, state })),
-    tap(src => expect(store.getState()).toEqual(src.state)),
-    tap(container.add.bind(container)),
-    mapTo(null),
+const reIncrementEpic = (amount: number) => (action$: Observable<Command>) => {
+  return select(action$, actions.increment).pipe(
+    mapTo(actions.reIncrement(amount)),
   )
 }
 
-const reIncrementEpic = (amount: number) => (ev: CommandSource, store: Store) => {
-  return select(ev, ACTIONS.INCREMENT).pipe(
-    mapTo(ACTIONS.RE_INCREMENT(amount)),
-  )
-}
+test('action -> action', () => {
+  expect.assertions(1)
 
-test('emit next action', () => {
-  const history = new Set()
-  const epicMiddleware = createEpicMiddleware({ reincremnet: reIncrementEpic(1) })
-  const historyMiddleware = createHistoryMiddleware(history)
-  const store = createStore(reducer, applyMiddleware(epicMiddleware, historyMiddleware))
+  const epic$ = new BehaviorSubject<Epic<State>>(reIncrementEpic(1))
+  const epicMiddleware = createEpicMiddleware(epic$)
+  const middlewares = applyMiddleware(epicMiddleware)
+  const store = createStore(reducer, middlewares)
 
-  store.dispatch(ACTIONS.INCREMENT(1))
-  store.dispatch(ACTIONS.DECREMENT(1))
+  store.dispatch(actions.increment(1))
+  store.dispatch(actions.decrement(1))
 
-  expect(Array.from(history)).toEqual([
-    { action: ACTIONS.INCREMENT(1), state: { count: 1 } },
-    { action: ACTIONS.RE_INCREMENT(1), state: { count: 2 } },
-    { action: ACTIONS.DECREMENT(1), state: { count: 1 } },
+  const { history } = store.getState()
+  expect(history).toEqual([
+    { action: actions.increment(1), state: { count: 1 } },
+    { action: actions.reIncrement(1), state: { count: 2 } },
+    { action: actions.decrement(1), state: { count: 1 } },
   ])
 })
 
 test('state$ in epic', () => {
-  const history = new Set()
-  const epicMiddleware = createEpicMiddleware({ logEpic: stateLogEpic(history) })
-  const store = createStore(reducer, applyMiddleware(epicMiddleware))
+  expect.assertions(4)
 
-  store.dispatch(ACTIONS.INCREMENT(1))
-  store.dispatch(ACTIONS.DECREMENT(1))
+  const testStateEpic = (action$: Observable<Command>, s: Store<State>) => {
+    return action$.pipe(
+      withLatestFrom(s.state$),
+      tap(([action, state]) => {
+        switch (action.type) {
+          case actions.increment.type:
+            expect(state.count).toBe(1)
+            break
+          case actions.reIncrement.type:
+            expect(state.count).toBe(2)
+            break
+          case actions.decrement.type:
+            expect(state.count).toBe(1)
+            break
+          default:
+            break
+        }
+      }),
+      mapTo(null),
+    )
+  }
 
-  expect(Array.from(history)).toEqual([
-    { action: ACTIONS.INCREMENT(1), state: { count: 1 } },
-    { action: ACTIONS.DECREMENT(1), state: { count: 0 } },
+  const rootEpic = combineEpic(reIncrementEpic(1), testStateEpic)
+  const epic$ = new BehaviorSubject(rootEpic)
+  const epicMiddleware = createEpicMiddleware(epic$)
+  const middlewares = applyMiddleware(epicMiddleware)
+  const store = createStore(reducer, middlewares)
+
+  store.dispatch(actions.increment(1))
+  store.dispatch(actions.decrement(1))
+
+  const { history } = store.getState()
+
+  expect(history).toEqual([
+    { action: actions.increment(1), state: { count: 1 } },
+    { action: actions.reIncrement(1), state: { count: 2 } },
+    { action: actions.decrement(1), state: { count: 1 } },
   ])
 })
 
-test('replaceEpics', () => {
-  const history = new Set()
+test('epic replacement', () => {
+  const epic$ = new BehaviorSubject(reIncrementEpic(1))
+  const epicMiddleware = createEpicMiddleware(epic$)
+  const middlewares = applyMiddleware(epicMiddleware)
+  const store = createStore(reducer, middlewares)
 
-  const firstEpic = reIncrementEpic(1)
-  const secondEpic = reIncrementEpic(10)
-
-  const epicMiddleware = createEpicMiddleware({ reIncrement: firstEpic })
-
-  const historyMiddleware = createHistoryMiddleware(history)
-
-  const store = createStore(reducer, applyMiddleware(epicMiddleware, historyMiddleware))
-
-  store.dispatch(ACTIONS.INCREMENT(1))
-
-  expect(Array.from(history)).toEqual([
-    { action: ACTIONS.INCREMENT(1), state: { count: 1 } },
-    { action: ACTIONS.RE_INCREMENT(1), state: { count: 2 } },
-  ])
-
-  /* clear history */
-  history.clear()
-
+  store.dispatch(actions.increment(1))
   /* replace */
-  epicMiddleware.replaceEpics({ reIncrement: secondEpic })
+  epic$.next(reIncrementEpic(10))
+  store.dispatch(actions.increment(1))
 
-  store.dispatch(ACTIONS.INCREMENT(1))
-
-  expect(Array.from(history)).toEqual([
-    { action: ACTIONS.INCREMENT(1), state: { count: 3 } },
-    { action: ACTIONS.RE_INCREMENT(10), state: { count: 13 } },
+  const { history } = store.getState()
+  expect(history).toEqual([
+    { action: actions.increment(1), state: { count: 1 } },
+    { action: actions.reIncrement(1), state: { count: 2 } },
+    { action: actions.increment(1), state: { count: 3 } },
+    { action: actions.reIncrement(10), state: { count: 13 } },
   ])
 })

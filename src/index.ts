@@ -1,8 +1,7 @@
-import { Observable, BehaviorSubject, Subject, Subscription } from 'rxjs'
-import { filter, map } from 'rxjs/operators'
-import { MiddlewareAPI, Dispatch, Middleware } from 'redux'
-import { HashMap, mapValues } from '@cotto/utils.ts'
-import { CommandSource, isCommand, CommandBus } from 'command-bus'
+import { Observable, BehaviorSubject, merge, queueScheduler, Subject } from 'rxjs'
+import { filter, switchMap, observeOn, subscribeOn } from 'rxjs/operators'
+import { Middleware } from 'redux'
+import { isCommand, CommandBus, Command } from 'command-bus'
 
 export interface Store<S = any> {
   getState: () => S,
@@ -10,76 +9,60 @@ export interface Store<S = any> {
 }
 
 export interface Epic<S> {
-  (ev: CommandSource, store: Store<S>): Observable<any>
+  (action$: Observable<Command>, store: Store<S>): Observable<any>
 }
-
-export type EpicMap<S> = HashMap<Epic<S>>
 
 export interface EpicMiddlewareOptions {
   busInstance?: CommandBus
-  showCompletedLogs?: boolean
 }
 
-const defualtOptions = (): EpicMiddlewareOptions => ({
+export type DefaultOpts<T = EpicMiddlewareOptions> = {
+  [P in keyof T]-?: T[P]
+}
+
+const defualtOptions = (): DefaultOpts => ({
   busInstance: new CommandBus(),
-  showCompletedLogs: false,
 })
 
-//
-// ─── REGISTRY ───────────────────────────────────────────────────────────────────
-//
-export function createRegistry() {
-  const registry = new Map<string, Subscription>()
-  return (subscriptions: HashMap<Subscription>) => {
-    for (const [k, s] of registry.entries()) {
-      s.unsubscribe()
-      registry.delete(k)
-    }
-    mapValues(subscriptions, (s, key: string) => registry.set(key, s))
-    return subscriptions
+export const createEpicMiddleware = <T>(
+  epic$: Observable<Epic<T>>,
+  opts?: EpicMiddlewareOptions,
+): Middleware<T> => api => {
+  const { busInstance } = { ...defualtOptions(), ...opts }
+  const action$ = new Subject<any>()
+  const state$ = new BehaviorSubject(api.getState())
+  const store = {
+    getState: api.getState,
+    state$: state$.pipe(observeOn(queueScheduler)),
+  }
+
+  action$.pipe(
+    observeOn(queueScheduler),
+    subscribeOn(queueScheduler),
+  ).subscribe(command => busInstance.dispatch(command))
+
+  epic$.pipe(
+    switchMap(epic => ensureCommand(epic(busInstance, store))),
+    observeOn(queueScheduler),
+    subscribeOn(queueScheduler),
+  ).subscribe(api.dispatch)
+
+  return next => action => {
+    const result = next(action)
+    state$.next(api.getState())
+    action$.next(result)
+    return result
   }
 }
+
 //
-// ─── MIDDLEWARE FACTORY ─────────────────────────────────────────────────────────────────
+// ─── UTILS ──────────────────────────────────────────────────────────────────────
 //
-export function createEpicMiddleware<T>(initialEpics: EpicMap<T>, opts = defualtOptions()) {
-  const bus = opts.busInstance || new CommandBus()
-  let state$: BehaviorSubject<T>
-  const epics$ = new Subject<EpicMap<T>>()
-  const putSubscriptions = createRegistry()
+const ensureCommand = filter(isCommand)
 
-  const middleware: Middleware = (api: MiddlewareAPI) => (next: Dispatch) => {
-    state$ = new BehaviorSubject<T>(api.getState())
-    epics$.pipe(map(switchNextEpic)).subscribe()
-    epics$.next(initialEpics)
-    return callNext
-
-    function bootEpic(epic: Epic<T>, key: string) {
-      return epic(bus, { getState: api.getState, state$ })
-        .pipe(filter(isCommand))
-        .subscribe({
-          next: api.dispatch,
-          error: err => console.error(`[redux-epic]: error at epics.${key}`, err), // tslint:disable-line
-          complete: () => opts.showCompletedLogs && console.info(`[redux-epic]: epics.${key} is completed`), // tslint:disable-line
-        },
-      )
-    }
-
-    function switchNextEpic(epics: EpicMap<T>) {
-      return putSubscriptions(mapValues(epics, bootEpic))
-    }
-
-    function callNext(action: any) {
-      const result = next(action)
-      state$.next(api.getState())
-      return isCommand(result) ? bus.dispatch(result) : result
-    }
+export const combineEpic = <T>(...epics: Epic<T>[]) => {
+  return (action$: Observable<Command>, store: Store<T>) => {
+    const observables = epics.map(ep => ep(action$, store))
+    return merge(...observables)
   }
-
-  const replaceEpics = (epics: EpicMap<T>) => {
-    epics$.next(epics)
-    return epics
-  }
-
-  return Object.assign(middleware, { replaceEpics })
 }
