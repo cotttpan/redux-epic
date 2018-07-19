@@ -29,12 +29,12 @@ export const createEpicMiddleware = <T>(
   opts?: EpicMiddlewareOptions,
 ): Middleware<T> => api => {
   const { busInstance } = { ...defualtOptions(), ...opts }
-  const actionSource$ = new Subject<any>()
+  const actionQueue$ = new Subject<any>()
   const state$ = new BehaviorSubject(api.getState())
   const action$ = busInstance
   const store = { getState: api.getState, state$ }
 
-  actionSource$.pipe(
+  actionQueue$.pipe(
     observeOn(queueScheduler),
     subscribeOn(queueScheduler),
   ).subscribe(command => action$.dispatch(command))
@@ -48,7 +48,7 @@ export const createEpicMiddleware = <T>(
   return next => action => {
     const result = next(action)
     state$.next(api.getState())
-    actionSource$.next(result)
+    actionQueue$.next(result)
     return result
   }
 }
