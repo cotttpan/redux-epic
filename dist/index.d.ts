@@ -15,5 +15,5 @@ export declare type DefaultOpts<T = EpicMiddlewareOptions> = {
     [P in keyof T]-?: T[P];
 };
 export declare const createEpicMiddleware: <T>(epic$: Observable<Epic<T>>, opts?: EpicMiddlewareOptions | undefined) => Middleware<T, any, import("redux").Dispatch<import("redux").AnyAction>>;
-export declare const combineEpic: <T>(...epics: Epic<T>[]) => (action$: Observable<Command<any, import("@cotto/utils.ts/dist/types").HashMap<any>>>, store: Store<T>) => Observable<any>;
+export declare const combineEpic: <T>(...epics: Epic<T>[]) => (action$: Observable<Command<any, import("f/dist/types").HashMap<any>>>, store: Store<T>) => Observable<any>;
 export { select };
