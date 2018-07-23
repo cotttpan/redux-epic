@@ -2,6 +2,7 @@ import { Observable, BehaviorSubject, merge, queueScheduler, Subject } from 'rxj
 import { filter, switchMap, observeOn, subscribeOn } from 'rxjs/operators'
 import { Middleware } from 'redux'
 import { select, isCommand, CommandBus, Command } from 'command-bus'
+import { NonNullableHashMap } from 'utils'
 
 export interface Store<S = any> {
   getState: () => S,
@@ -16,11 +17,7 @@ export interface EpicMiddlewareOptions {
   busInstance?: CommandBus
 }
 
-export type DefaultOpts<T = EpicMiddlewareOptions> = {
-  [P in keyof T]-?: T[P]
-}
-
-const defualtOptions = (): DefaultOpts => ({
+const defualtOptions = (): NonNullableHashMap<EpicMiddlewareOptions> => ({
   busInstance: new CommandBus(),
 })
 
