@@ -24,8 +24,8 @@
   "homepage": "https://github.com/nullabletypo/redux-epic",
   "dependencies": {
     "command-bus": "https://github.com/nullabletypo/command-bus",
-    "f": "https://github.com/nullabletypo/f",
-    "rxjs": "^6.2.2"
+    "rxjs": "^6.2.2",
+    "utils": "https://github.com/nullabletypo/utils"
   },
   "devDependencies": {
     "@types/jest": "^23.3.0",
