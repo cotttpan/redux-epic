@@ -1,7 +1,7 @@
 module.exports = {
   notify: true,
   transform: {
-    '.(ts|tsx)': '<rootDir>/node_modules/ts-jest/preprocessor.js',
+    '^.+\\.tsx?$': 'ts-jest',
   },
   testRegex: '(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$',
   moduleFileExtensions: [
@@ -10,4 +10,9 @@ module.exports = {
     'js',
     'json',
   ],
+  globals: {
+    'ts-jest': {
+      skipBabel: true,
+    },
+  },
 }
